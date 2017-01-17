@@ -6,7 +6,12 @@ app = Flask(__name__)
 
 # This needs to be filled with the Page Access Token that will be provided
 # by the Facebook App that will be created.
+# followed by bot info
+
 PAT = 'EAAFKW3kWutoBAP1OBCqr5aYzCffyP88jZCerP3HBLOD89XDvZAcZBcVVLFuaPrgoPpsZBhowQEYkDEM1t4uthbUBZCTk5HwX1SscZCtyZA6oYPQvdfO4ZBqR5iv6Vf8B2lphPDuvZAwlQwV0vf5ZAwexHzcDOUaG2qsostAFOPOAxwOQZDZD'
+app_id = '1409614021357'
+user_key = '954b5550b8a4a07f7ee98794c9bdbe8d'
+botname = 'messengerbot'
 
 @app.route('/', methods=['GET'])
 def handle_verification():
@@ -25,7 +30,7 @@ def handle_messages():
   print(payload)
   for sender, message in messaging_events(payload):
     print("Incoming from %s: %s" % (sender, message))
-    send_message(PAT, sender, message)
+    get_reply(PAT, sender, message)
   return "ok"
 
 def messaging_events(payload):
@@ -39,6 +44,22 @@ def messaging_events(payload):
       yield event["sender"]["id"], event["message"]["text"].encode('unicode_escape')
     else:
       yield event["sender"]["id"], "I can't echo this"
+
+def get_reply(token, sender, message):
+  # https://aiaas.pandorabots.com/talk/APP_ID/BOTNAME?user_key=USER_KEY&input=INPUT
+  base_url = 'https://aiaas.pandorabots.com/talk'
+  url = '{0}/{1}/{2}?user_key={3}&input={4}&client_name={5}'.format(
+    base_url, app_id, botname, user_key, message, sender.lower())
+
+  r = requests.post(url)
+  data = json.loads(r.get_data())
+  reply_messages = data["responses"]
+  reply = ''
+
+  for message in reply_messages:
+    reply += '{0} {1}'.format(reply, message)
+
+  send_message(token, sender, reply)
 
 
 def send_message(token, recipient, text):
