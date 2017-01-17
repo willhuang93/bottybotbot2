@@ -1,4 +1,5 @@
 from flask import Flask, request
+from urllib.parse import quote
 import json
 import requests
 
